@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Literarium - Escreva e Leia Histórias</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Estilos personalizados para aprimorar o Tailwind */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,700;1,400&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #d1d5db;
+        }
+
+        .story-content,
+        .comment-text,
+        .writing-area {
+            font-family: 'Lora', serif;
+            font-size: 1.125rem;
+            line-height: 1.75;
+        }
+
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 300ms, transform 300ms;
+        }
+
+        .modal-leave {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .modal-leave-active {
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 300ms, transform 300ms;
+        }
+
+        .page-enter {
+            opacity: 0;
+        }
+
+        .page-enter-active {
+            opacity: 1;
+            transition: opacity 300ms;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        .writing-sheet {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Estilo para a caixa de mensagem personalizada */
+        #message-box {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- =========== Caixa de Mensagem Personalizada =========== -->
+    <div id="message-box" class="fixed w-full max-w-sm p-4 rounded-lg shadow-lg hidden">
+        <p id="message-text" class="text-sm font-medium"></p>
+    </div>
+
+    <div id="main-content">
+        <!-- =========== Cabeçalho =========== -->
+        <header class="bg-gray-900/80 backdrop-blur-sm sticky top-0 z-40 shadow-lg">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <h1 class="text-2xl font-bold text-white cursor-pointer" onclick="window.location.reload()">Literarium</h1>
+                    <div id="user-actions" class="flex items-center space-x-4">
+                        <button id="login-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
+                            Entrar com Google
+                        </button>
+                        <div id="user-profile" class="hidden items-center space-x-4">
+                            <button id="write-story-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
+                                Escrever
+                            </button>
+                            <button id="my-stories-btn" class="text-white hover:text-indigo-400 font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
+                                Minhas Histórias
+                            </button>
+                            <img id="user-avatar" class="w-10 h-10 rounded-full" src="" alt="User Avatar">
+                            <span id="user-name" class="text-white font-semibold hidden md:inline"></span>
+                            <button id="logout-btn" class="text-gray-400 hover:text-white transition-colors duration-300">Sair</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- =========== Conteúdo Principal =========== -->
+        <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <h2 id="page-title" class="text-3xl font-bold text-white mb-6">Explore Histórias</h2>
+            <div id="user-id-display" class="bg-gray-800 p-4 rounded-lg shadow-inner mb-6 hidden flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0 md:space-x-4">
+                <p class="text-sm text-gray-400 truncate">Seu ID de Usuário: <span id="user-id-text" class="text-white font-mono"></span></p>
+                <button id="copy-id-btn" class="bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold py-1 px-3 rounded-full transition-colors duration-300">
+                    <i class="fas fa-copy mr-1"></i>Copiar ID
+                </button>
+            </div>
+            
+            <!-- Ferramentas de Busca e Filtro -->
+            <div id="search-bar" class="flex flex-col md:flex-row gap-4 mb-8">
+                <input type="text" id="search-input" placeholder="Pesquisar por título..." class="w-full md:w-1/2 bg-gray-800 border border-gray-700 rounded-lg p-2 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                <select id="genre-filter" class="w-full md:w-auto bg-gray-800 border border-gray-700 rounded-lg p-2 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <option value="all">Todos os Gêneros</option>
+                    <option value="fantasia">Fantasia</option>
+                    <option value="ficcao-cientifica">Ficção Científica</option>
+                    <option value="romance">Romance</option>
+                    <option value="terror">Terror</option>
+                    <option value="aventura">Aventura</option>
+                    <option value="misterio">Mistério</option>
+                </select>
+            </div>
+
+            <div id="loading-spinner" class="text-center py-10">
+                <svg class="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="mt-2 text-gray-400">Carregando histórias...</p>
+            </div>
+            <div id="stories-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <p id="no-stories-message" class="text-center text-gray-400 py-10 hidden">Nenhuma história encontrada. Tente um filtro diferente ou seja o primeiro a escrever!</p>
+        </main>
+    </div>
+
+    <!-- =========== Nova Página de Escrita =========== -->
+    <div id="writing-page" class="fixed inset-0 bg-gray-900 z-50 hidden flex page-enter">
+        <!-- Barra de Ferramentas Lateral -->
+        <aside class="w-full sm:w-64 bg-gray-800 p-6 flex flex-col shadow-lg">
+            <h2 class="text-white text-2xl font-bold mb-8">Escreva</h2>
+            <div class="flex-grow space-y-4">
+                <label for="story-genre" class="text-gray-400 text-sm">Gênero</label>
+                <select id="story-genre" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <option value="fantasia">Fantasia</option>
+                    <option value="ficcao-cientifica">Ficção Científica</option>
+                    <option value="romance">Romance</option>
+                    <option value="terror">Terror</option>
+                    <option value="aventura">Aventura</option>
+                    <option value="misterio">Mistério</option>
+                </select>
+                <!-- Botões de formatação de texto podem ser adicionados aqui no futuro -->
+            </div>
+            <div class="space-y-2 mt-8">
+                <button id="publish-story-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">Publicar</button>
+                <button id="back-to-main-btn" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors">Voltar</button>
+            </div>
+        </aside>
+
+        <!-- Área de Escrita Central -->
+        <main class="flex-1 bg-gray-900 p-8 overflow-y-auto">
+            <div class="max-w-4xl mx-auto bg-gray-100 dark:bg-gray-800 p-10 md:p-16 rounded-lg writing-sheet">
+                <input id="story-title" type="text" placeholder="Título da sua história" class="w-full bg-transparent text-gray-900 dark:text-white text-4xl font-bold border-none focus:outline-none mb-8">
+                <textarea id="story-content" placeholder="Comece a escrever aqui..." class="w-full h-[60vh] bg-transparent text-gray-700 dark:text-gray-300 border-none focus:outline-none resize-none writing-area"></textarea>
+            </div>
+        </main>
+    </div>
+
+    <!-- =========== Modal do Leitor (com botões de ação) =========== -->
+    <div id="reader-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col modal-enter">
+            <div class="p-6 border-b border-gray-700 flex justify-between items-start">
+                <div>
+                    <h3 id="reader-title" class="text-3xl font-bold text-white"></h3>
+                    <p class="text-sm text-gray-400 mt-1">por <span id="reader-author" class="font-semibold text-gray-200"></span></p>
+                    <div id="story-actions" class="mt-4 space-x-2 hidden">
+                        <button id="edit-story-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1 px-3 rounded-full transition-colors duration-300">
+                            <i class="fas fa-edit mr-1"></i>Editar
+                        </button>
+                        <button id="delete-story-btn" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-1 px-3 rounded-full transition-colors duration-300">
+                            <i class="fas fa-trash-alt mr-1"></i>Excluir
+                        </button>
+                    </div>
+                </div>
+                <button id="close-reader-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <div class="p-6 flex-grow overflow-y-auto">
+                <p id="reader-content" class="text-gray-300 story-content whitespace-pre-wrap"></p>
+                <div class="mt-8 pt-6 border-t border-gray-700">
+                    <div class="flex items-center space-x-4 mb-6">
+                        <button id="like-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors duration-300">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                            <span>Curtir</span>
+                        </button>
+                        <span id="like-count" class="text-sm font-medium text-white">0</span>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-4">Comentários</h4>
+                    <div id="comments-section" class="space-y-4 mb-6"></div>
+                    <div class="flex space-x-3">
+                        <input id="comment-input" type="text" placeholder="Escreva um comentário..." class="flex-1 bg-gray-700 border border-gray-600 text-white p-2 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <button id="submit-comment-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">Enviar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- =========== Scripts =========== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, increment, query, serverTimestamp, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        
+        // Ativar o registro de logs do Firebase para depuração
+        setLogLevel('debug');
+        
+        // Variáveis globais fornecidas pelo ambiente
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'literarium-default';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        let app, auth, db, currentUser = null, currentStoryId, isEditing = false;
+        let allStories = [], unsubscribeStories = null, unsubscribeComments = null;
+
+        // Elementos da UI
+        const mainContent = document.getElementById('main-content');
+        const writingPage = document.getElementById('writing-page');
+        const readerModal = document.getElementById('reader-modal');
+        const storiesGrid = document.getElementById('stories-grid');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const noStoriesMessage = document.getElementById('no-stories-message');
+        const pageTitle = document.getElementById('page-title');
+        const searchInput = document.getElementById('search-input');
+        const genreFilter = document.getElementById('genre-filter');
+        const userIdDisplay = document.getElementById('user-id-display');
+        const userIdText = document.getElementById('user-id-text');
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+
+        /**
+         * Inicializa o aplicativo Firebase e configura os observadores e eventos.
+         */
+        async function initializeAppAndListeners() {
+            if (Object.keys(firebaseConfig).length === 0) {
+                showMessage('Erro: Configuração do Firebase ausente.', 'error');
+                loadingSpinner.innerHTML = '<p class="text-red-400">Erro: Configuração do Firebase ausente.</p>';
+                return;
+            }
+
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            setupEventListeners();
+            setupAuthObserver();
+        }
+
+        /**
+         * Gerencia a autenticação do usuário.
+         */
+        async function setupAuthObserver() {
+            // Tenta fazer login com o token fornecido pelo ambiente
+            if (initialAuthToken) {
+                try {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Login com token inicial bem-sucedido.");
+                } catch (error) {
+                    console.error("Erro ao fazer login com token inicial:", error);
+                    // Tenta login anônimo como fallback
+                    await signInAnonymously(auth);
+                }
+            } else {
+                 await signInAnonymously(auth);
+            }
+
+            // Observa o estado de autenticação para atualizar a UI
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                updateUIForAuthState();
+                fetchStories();
+            });
+        }
+        
+        /**
+         * Atualiza a interface do usuário com base no estado de autenticação.
+         */
+        function updateUIForAuthState() {
+            const loginBtn = document.getElementById('login-btn');
+            const userProfile = document.getElementById('user-profile');
+
+            if (currentUser && currentUser.isAnonymous === false) {
+                loginBtn.classList.add('hidden');
+                userProfile.classList.remove('hidden');
+                userProfile.classList.add('flex');
+                document.getElementById('user-avatar').src = currentUser.photoURL;
+                document.getElementById('user-name').textContent = currentUser.displayName;
+                userIdDisplay.classList.remove('hidden');
+                userIdDisplay.classList.add('flex');
+                userIdText.textContent = currentUser.uid;
+            } else {
+                loginBtn.classList.remove('hidden');
+                userProfile.classList.add('hidden');
+                userProfile.classList.remove('flex');
+                userIdDisplay.classList.add('hidden');
+                userIdDisplay.classList.remove('flex');
+            }
+        }
+        
+        /**
+         * Autentica o usuário com o Google.
+         */
+        async function signInWithGoogle() {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                showMessage('Login realizado com sucesso!', 'success');
+            } catch (error) {
+                console.error("Erro ao fazer login:", error);
+                showMessage('Erro ao fazer login. Tente novamente.', 'error');
+            }
+        }
+        
+        /**
+         * Faz o logout do usuário.
+         */
+        async function signOutUser() {
+            try {
+                await signOut(auth);
+                showMessage('Você saiu da sua conta.', 'info');
+            } catch (error) {
+                console.error("Erro ao fazer logout:", error);
+                showMessage('Erro ao fazer logout.', 'error');
+            }
+        }
+
+        /**
+         * Configura todos os ouvintes de eventos da UI.
+         */
+        function setupEventListeners() {
+            document.getElementById('login-btn').addEventListener('click', signInWithGoogle);
+            document.getElementById('logout-btn').addEventListener('click', signOutUser);
+            document.getElementById('write-story-btn').addEventListener('click', openWritingPage);
+            document.getElementById('back-to-main-btn').addEventListener('click', closeWritingPage);
+            document.getElementById('publish-story-btn').addEventListener('click', handlePublishStory);
+            document.getElementById('close-reader-btn').addEventListener('click', closeReader);
+            document.getElementById('like-btn').addEventListener('click', handleLike);
+            document.getElementById('submit-comment-btn').addEventListener('click', handleAddComment);
+            document.getElementById('search-input').addEventListener('input', filterAndRenderStories);
+            document.getElementById('genre-filter').addEventListener('change', filterAndRenderStories);
+            document.getElementById('my-stories-btn').addEventListener('click', openMyStoriesPage);
+            document.getElementById('copy-id-btn').addEventListener('click', copyUserId);
+            document.getElementById('edit-story-btn').addEventListener('click', handleEditStory);
+            document.getElementById('delete-story-btn').addEventListener('click', handleDeleteStory);
+        }
+
+        /**
+         * Abre a página de escrita.
+         */
+        function openWritingPage() {
+            mainContent.classList.add('hidden');
+            writingPage.classList.remove('hidden');
+            writingPage.classList.add('page-enter-active');
+            isEditing = false;
+        }
+
+        /**
+         * Fecha a página de escrita e volta para a principal.
+         */
+        function closeWritingPage() {
+            writingPage.classList.add('hidden');
+            writingPage.classList.remove('page-enter-active');
+            mainContent.classList.remove('hidden');
+            document.getElementById('story-title').value = '';
+            document.getElementById('story-content').value = '';
+            isEditing = false;
+        }
+
+        /**
+         * Abre a página de histórias do usuário atual.
+         */
+        function openMyStoriesPage() {
+            pageTitle.textContent = 'Minhas Histórias';
+            searchInput.value = '';
+            genreFilter.value = 'all';
+            filterAndRenderStories(true);
+        }
+
+        /**
+         * Busca as histórias no Firestore.
+         */
+        function fetchStories() {
+            if (unsubscribeStories) unsubscribeStories();
+            
+            loadingSpinner.classList.remove('hidden');
+            noStoriesMessage.classList.add('hidden');
+
+            const storiesRef = collection(db, `artifacts/${appId}/public/data/stories`);
+            const q = query(storiesRef);
+
+            unsubscribeStories = onSnapshot(q, (snapshot) => {
+                allStories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                allStories.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
+                filterAndRenderStories();
+                loadingSpinner.classList.add('hidden');
+            }, (error) => {
+                console.error("Erro ao buscar histórias:", error);
+                loadingSpinner.innerHTML = '<p class="text-red-400">Não foi possível carregar as histórias.</p>';
+            });
+        }
+        
+        /**
+         * Filtra e renderiza as histórias na grade.
+         */
+        function filterAndRenderStories(myStoriesOnly = false) {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedGenre = genreFilter.value;
+            
+            let filteredStories = allStories;
+
+            if (myStoriesOnly && currentUser) {
+                filteredStories = filteredStories.filter(story => story.authorId === currentUser.uid);
+            } else {
+                 pageTitle.textContent = 'Explore Histórias';
+            }
+
+            if (searchTerm) {
+                filteredStories = filteredStories.filter(story => story.title.toLowerCase().includes(searchTerm));
+            }
+
+            if (selectedGenre !== 'all') {
+                filteredStories = filteredStories.filter(story => story.genre === selectedGenre);
+            }
+            
+            renderStories(filteredStories);
+        }
+
+        /**
+         * Renderiza as histórias na UI.
+         */
+        function renderStories(stories) {
+            storiesGrid.innerHTML = '';
+            if (stories.length === 0) {
+                noStoriesMessage.classList.remove('hidden');
+            } else {
+                noStoriesMessage.classList.add('hidden');
+                storiesGrid.innerHTML = stories.map(story => `
+                    <div class="bg-gray-800 rounded-lg p-5 shadow-lg cursor-pointer hover:bg-gray-700/50 transition-colors duration-300" data-id="${story.id}">
+                        <h3 class="text-xl font-bold text-white mb-2 truncate">${story.title}</h3>
+                        <p class="text-gray-400 text-sm mb-4">por <span class="font-semibold text-gray-300">${story.authorName || 'Anônimo'}</span></p>
+                        <p class="text-gray-300 h-24 overflow-hidden text-ellipsis">${story.content}</p>
+                        <div class="mt-4 flex items-center justify-between text-sm text-gray-400">
+                            <span>❤️ ${story.likes || 0}</span>
+                            <span>💬 ${story.commentCount || 0}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                storiesGrid.querySelectorAll('[data-id]').forEach(card => {
+                    card.addEventListener('click', () => openReader(card.dataset.id));
+                });
+            }
+        }
+        
+        /**
+         * Lida com a publicação e edição de uma história.
+         */
+        async function handlePublishStory() {
+            const title = document.getElementById('story-title').value.trim();
+            const content = document.getElementById('story-content').value.trim();
+            const genre = document.getElementById('story-genre').value;
+            const publishBtn = document.getElementById('publish-story-btn');
+
+            if (!title || !content) {
+                showMessage("Por favor, preencha o título e o conteúdo da história.", 'warning');
+                return;
+            }
+            if (!currentUser) {
+                showMessage("Você precisa estar logado para publicar.", 'error');
+                return;
+            }
+
+            publishBtn.disabled = true;
+            publishBtn.textContent = isEditing ? 'Salvando...' : 'Publicando...';
+
+            try {
+                if (isEditing) {
+                    const storyRef = doc(db, `artifacts/${appId}/public/data/stories`, currentStoryId);
+                    await updateDoc(storyRef, { title, content, genre });
+                    showMessage('História atualizada com sucesso!', 'success');
+                } else {
+                    const storiesRef = collection(db, `artifacts/${appId}/public/data/stories`);
+                    await addDoc(storiesRef, {
+                        title,
+                        content,
+                        genre,
+                        authorId: currentUser.uid,
+                        authorName: currentUser.displayName,
+                        authorPhotoURL: currentUser.photoURL,
+                        createdAt: serverTimestamp(),
+                        likes: 0,
+                        commentCount: 0,
+                    });
+                    showMessage('História publicada com sucesso!', 'success');
+                }
+                closeWritingPage();
+            } catch (error) {
+                console.error("Erro ao publicar história:", error);
+                showMessage("Ocorreu um erro ao publicar sua história.", 'error');
+            } finally {
+                publishBtn.disabled = false;
+                publishBtn.textContent = isEditing ? 'Salvar' : 'Publicar';
+            }
+        }
+        
+        /**
+         * Abre o modal do leitor de histórias.
+         */
+        async function openReader(storyId) {
+            currentStoryId = storyId;
+            const storyActions = document.getElementById('story-actions');
+            try {
+                const storyRef = doc(db, `artifacts/${appId}/public/data/stories`, storyId);
+                const storySnap = await getDoc(storyRef);
+
+                if (storySnap.exists()) {
+                    const story = storySnap.data();
+                    document.getElementById('reader-title').textContent = story.title;
+                    document.getElementById('reader-author').textContent = story.authorName || 'Anônimo';
+                    document.getElementById('reader-content').textContent = story.content;
+                    document.getElementById('like-count').textContent = story.likes || 0;
+                    
+                    if (currentUser && story.authorId === currentUser.uid) {
+                        storyActions.classList.remove('hidden');
+                    } else {
+                        storyActions.classList.add('hidden');
+                    }
+
+                    readerModal.classList.remove('hidden');
+                    readerModal.querySelector('div').classList.add('modal-enter-active');
+
+                    fetchComments(storyId);
+                } else {
+                    showMessage('História não encontrada.', 'error');
+                }
+            } catch (error) {
+                console.error("Erro ao abrir história:", error);
+                showMessage("Erro ao carregar história.", 'error');
+            }
+        }
+
+        /**
+         * Fecha o modal do leitor.
+         */
+        function closeReader() {
+            if (unsubscribeComments) unsubscribeComments();
+            readerModal.querySelector('div').classList.remove('modal-enter-active');
+            readerModal.classList.add('hidden');
+            currentStoryId = null;
+        }
+        
+        /**
+         * Lida com o clique no botão de "Curtir".
+         */
+        async function handleLike() {
+            if (!currentUser || !currentStoryId) {
+                showMessage("Você precisa estar logado para curtir.", 'warning');
+                return;
+            }
+            const storyRef = doc(db, `artifacts/${appId}/public/data/stories`, currentStoryId);
+            try {
+                await updateDoc(storyRef, { likes: increment(1) });
+                const currentLikes = parseInt(document.getElementById('like-count').textContent);
+                document.getElementById('like-count').textContent = currentLikes + 1;
+            } catch (error) {
+                console.error("Erro ao curtir história:", error);
+                showMessage('Erro ao curtir a história.', 'error');
+            }
+        }
+        
+        /**
+         * Busca e observa os comentários de uma história.
+         */
+        function fetchComments(storyId) {
+            if (unsubscribeComments) unsubscribeComments();
+            const commentsRef = collection(db, `artifacts/${appId}/public/data/stories/${storyId}/comments`);
+            const q = query(commentsRef);
+            unsubscribeComments = onSnapshot(q, (snapshot) => {
+                const comments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                comments.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
+                renderComments(comments);
+            }, (error) => {
+                console.error("Erro ao buscar comentários:", error);
+                showMessage('Erro ao carregar comentários.', 'error');
+            });
+        }
+        
+        /**
+         * Renderiza os comentários na UI.
+         */
+        function renderComments(comments) {
+            const commentsSection = document.getElementById('comments-section');
+            if (comments.length === 0) {
+                commentsSection.innerHTML = '<p class="text-sm text-gray-500">Nenhum comentário ainda.</p>';
+            } else {
+                commentsSection.innerHTML = comments.map(comment => `
+                    <div class="bg-gray-700/50 p-3 rounded-lg">
+                        <p class="text-xs text-gray-400 font-semibold">${comment.authorName || 'Anônimo'}</p>
+                        <p class="text-sm text-gray-300 comment-text">${comment.text}</p>
+                    </div>
+                `).join('');
+            }
+        }
+
+        /**
+         * Lida com a adição de um novo comentário.
+         */
+        async function handleAddComment() {
+            const commentInput = document.getElementById('comment-input');
+            const text = commentInput.value.trim();
+            if (!text || !currentUser || !currentStoryId) {
+                showMessage("Você precisa estar logado para comentar.", 'warning');
+                return;
+            }
+            
+            try {
+                const commentsRef = collection(db, `artifacts/${appId}/public/data/stories/${currentStoryId}/comments`);
+                await addDoc(commentsRef, {
+                    text: text,
+                    authorId: currentUser.uid,
+                    authorName: currentUser.displayName,
+                    createdAt: serverTimestamp()
+                });
+                
+                const storyRef = doc(db, `artifacts/${appId}/public/data/stories`, currentStoryId);
+                await updateDoc(storyRef, { commentCount: increment(1) });
+                commentInput.value = '';
+                showMessage('Comentário adicionado!', 'success');
+            } catch (error) {
+                console.error("Erro ao adicionar comentário:", error);
+                showMessage('Erro ao adicionar comentário.', 'error');
+            }
+        }
+
+        /**
+         * Lida com a ação de editar uma história.
+         */
+        async function handleEditStory() {
+            if (!currentStoryId) return;
+
+            try {
+                const storyRef = doc(db, `artifacts/${appId}/public/data/stories`, currentStoryId);
+                const storySnap = await getDoc(storyRef);
+                const story = storySnap.data();
+
+                if (story && story.authorId === currentUser.uid) {
+                    closeReader();
+                    document.getElementById('story-title').value = story.title;
+                    document.getElementById('story-content').value = story.content;
+                    document.getElementById('story-genre').value = story.genre;
+                    document.getElementById('publish-story-btn').textContent = 'Salvar';
+                    isEditing = true;
+                    openWritingPage();
+                } else {
+                    showMessage("Você não tem permissão para editar esta história.", 'error');
+                }
+            } catch (error) {
+                console.error("Erro ao carregar história para edição:", error);
+                showMessage("Erro ao carregar história para edição.", 'error');
+            }
+        }
+
+        /**
+         * Lida com a ação de excluir uma história.
+         */
+        async function handleDeleteStory() {
+            if (!currentStoryId) return;
+            if (!currentUser) {
+                showMessage("Você precisa estar logado para excluir histórias.", 'warning');
+                return;
+            }
+            
+            const storyRef = doc(db, `artifacts/${appId}/public/data/stories`, currentStoryId);
+            const storySnap = await getDoc(storyRef);
+            const story = storySnap.data();
+
+            if (!story || story.authorId !== currentUser.uid) {
+                showMessage("Você não tem permissão para excluir esta história.", 'error');
+                return;
+            }
+
+            if (confirm("Tem certeza que deseja excluir esta história? Esta ação é irreversível.")) {
+                try {
+                    // Primeiro, exclui os subdocumentos (comentários)
+                    const commentsRef = collection(db, `artifacts/${appId}/public/data/stories/${currentStoryId}/comments`);
+                    const commentsSnap = await getDocs(commentsRef);
+                    const deletePromises = commentsSnap.docs.map(commentDoc => deleteDoc(commentDoc.ref));
+                    await Promise.all(deletePromises);
+
+                    // Depois, exclui o documento principal
+                    await deleteDoc(storyRef);
+                    closeReader();
+                    showMessage('História excluída com sucesso!', 'success');
+                } catch (error) {
+                    console.error("Erro ao excluir história:", error);
+                    showMessage("Ocorreu um erro ao excluir a história.", 'error');
+                }
+            }
+        }
+
+        /**
+         * Exibe uma mensagem na caixa de mensagem personalizada.
+         * @param {string} text O texto da mensagem.
+         * @param {string} type O tipo da mensagem ('success', 'error', 'warning', 'info').
+         */
+        function showMessage(text, type) {
+            messageText.textContent = text;
+            messageBox.className = 'fixed w-full max-w-sm p-4 rounded-lg shadow-lg hidden';
+            
+            switch (type) {
+                case 'success':
+                    messageBox.classList.add('bg-green-600', 'text-white');
+                    break;
+                case 'error':
+                    messageBox.classList.add('bg-red-600', 'text-white');
+                    break;
+                case 'warning':
+                    messageBox.classList.add('bg-yellow-500', 'text-black');
+                    break;
+                case 'info':
+                    messageBox.classList.add('bg-blue-600', 'text-white');
+                    break;
+                default:
+                    messageBox.classList.add('bg-gray-700', 'text-white');
+            }
+
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 5000);
+        }
+
+        /**
+         * Copia o ID do usuário para a área de transferência.
+         */
+        function copyUserId() {
+            if (currentUser && currentUser.uid) {
+                navigator.clipboard.writeText(currentUser.uid).then(() => {
+                    showMessage('ID copiado para a área de transferência!', 'success');
+                }).catch(err => {
+                    console.error('Erro ao copiar ID: ', err);
+                    showMessage('Erro ao copiar ID. Tente novamente.', 'error');
+                });
+            }
+        }
+
+        // Inicia o aplicativo
+        initializeAppAndListeners();
+    </script>
+</body>
+</html>
