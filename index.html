@@ -1,854 +1,794 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Literarium - Escreva e Leia Histórias</title>
+    <title>Gerador de Fursona</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
-        /* Estilos personalizados para aprimorar o Tailwind */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,700;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+        :root {
+            --primary-bg: #1a1a2e;
+            --secondary-bg: #272740;
+            --panel-bg: #2e2e4a;
+            --accent-color: #6a5acd;
+            --accent-hover: #7b68ee;
+            --text-color: #e0e0e0;
+            --light-text: #c4c4e2;
+        }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #111827;
-            color: #d1d5db;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #0e1e3a);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+            overflow-x: hidden;
+            position: relative;
+            /* Cursor de pata personalizado */
+            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path fill='%23e0e0e0' d='M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM128 256a24 24 0 1 1 48 0 24 24 0 1 1 -48 0zm104-56a24 24 0 1 1 48 0 24 24 0 1 1 -48 0zm96 56a24 24 0 1 1 48 0 24 24 0 1 1 -48 0zm-80 120a48 48 0 1 1 96 0 48 48 0 1 1 -96 0z'/></svg>") 16 16, auto;
         }
 
-        .story-content,
-        .comment-text,
-        .writing-area {
-            font-family: 'Lora', serif;
-            font-size: 1.125rem;
-            line-height: 1.75;
+        .container {
+            background-color: var(--secondary-bg);
+            border-radius: 2rem;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+            animation: slide-up 1s ease-out forwards;
+            position: relative;
+            z-index: 10;
         }
 
-        .modal-enter {
+        @media (min-width: 1024px) {
+            .container {
+                flex-direction: row;
+            }
+        }
+        
+        .panel {
+            background-color: var(--panel-bg);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--light-text);
+        }
+
+        select, input[type="range"], textarea {
+            background-color: #38385b;
+            border: 1px solid #4a4a75;
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            color: var(--text-color);
+            outline: none;
+            transition: all 0.3s ease;
+            appearance: none;
+        }
+        
+        select:hover {
+            background-color: #4a4a75;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(106, 90, 205, 0.5);
+        }
+        
+        textarea {
+            min-height: 100px;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-color);
+            border: 3px solid #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--accent-hover);
+            transform: scale(1.1);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: var(--accent-color);
+            border: 3px solid #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+
+        .btn {
+            background-color: var(--accent-color);
+            color: #ffffff;
+            font-weight: 700;
+            padding: 1rem 2rem;
+            border-radius: 1.5rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+        
+        .btn:disabled {
+            background-color: #4a4a75;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+
+        .image-container {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            background-color: var(--panel-bg);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+            gap: 1rem;
+        }
+
+        #result-image {
+            width: 100%;
+            height: auto;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 1.5rem;
+            transition: opacity 0.5s ease-in-out;
             opacity: 0;
-            transform: scale(0.95);
         }
-
-        .modal-enter-active {
+        
+        #result-image.visible {
             opacity: 1;
-            transform: scale(1);
-            transition: opacity 300ms, transform 300ms;
         }
 
-        .modal-leave {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .modal-leave-active {
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(46, 46, 74, 0.8);
+            backdrop-filter: blur(5px);
             opacity: 0;
-            transform: scale(0.95);
-            transition: opacity 300ms, transform 300ms;
+            visibility: hidden;
+            transition: opacity 0.5s ease;
+            border-radius: 1.5rem;
+            text-align: center;
         }
-
-        .page-enter {
-            opacity: 0;
-        }
-
-        .page-enter-active {
+        
+        .loading-overlay.visible {
             opacity: 1;
-            transition: opacity 300ms;
+            visibility: visible;
         }
 
-        ::-webkit-scrollbar {
-            width: 8px;
+        .spinner {
+            border: 4px solid #4a4a75;
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        ::-webkit-scrollbar-track {
-            background: #1f2937;
+        .hidden {
+            display: none;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: #4b5563;
-            border-radius: 4px;
+        /* Animações de entrada */
+        @keyframes slide-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #6b7280;
+        
+        /* Partículas de Patinhas */
+        .paw-particle {
+            position: absolute;
+            font-size: 24px;
+            color: #ffffff;
+            opacity: 0;
+            pointer-events: none;
+            animation: float-up 5s ease-out forwards;
+            z-index: 1; /* Para aparecer atrás do conteúdo */
         }
-
-        .writing-sheet {
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Estilo para a caixa de mensagem personalizada */
-        #message-box {
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
+        
+        @keyframes float-up {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-200px) scale(1.2);
+                opacity: 0;
+            }
         }
     </style>
 </head>
-<body class="antialiased">
+<body>
 
-    <!-- =========== Caixa de Mensagem Personalizada =========== -->
-    <div id="message-box" class="fixed w-full max-w-sm p-4 rounded-lg shadow-lg hidden">
-        <p id="message-text" class="text-sm font-medium"></p>
-    </div>
-
-    <!-- =========== Modal de Confirmação Personalizado =========== -->
-    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 hidden">
-        <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-sm p-6 modal-enter">
-            <p id="confirm-message" class="text-white text-lg font-semibold mb-4 text-center"></p>
-            <div class="flex justify-center space-x-4">
-                <button id="confirm-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">Não</button>
-                <button id="confirm-ok-btn" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">Sim</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="main-content">
-        <!-- =========== Cabeçalho =========== -->
-        <header class="bg-gray-900/80 backdrop-blur-sm sticky top-0 z-40 shadow-lg">
-            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between h-16">
-                    <h1 class="text-2xl font-bold text-white cursor-pointer" onclick="window.location.reload()">Literarium</h1>
-                    <div id="user-actions" class="flex items-center space-x-4">
-                        <button id="login-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
-                            Entrar com Google
-                        </button>
-                        <div id="user-profile" class="hidden items-center space-x-4">
-                            <button id="write-story-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
-                                Escrever
-                            </button>
-                            <button id="my-stories-btn" class="text-white hover:text-indigo-400 font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
-                                Minhas Histórias
-                            </button>
-                            <img id="user-avatar" class="w-10 h-10 rounded-full" src="" alt="User Avatar">
-                            <span id="user-name" class="text-white font-semibold hidden md:inline"></span>
-                            <button id="logout-btn" class="text-gray-400 hover:text-white transition-colors duration-300">Sair</button>
-                        </div>
-                    </div>
+    <div class="container lg:flex-row">
+        <!-- Painel de Controles -->
+        <div class="panel" id="main-panel">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-3xl font-bold text-[--light-text]" data-lang-key="createTitle">Criar Meu Fursona</h2>
+                <div class="input-group w-32 ml-auto">
+                    <label for="languageSelect" class="sr-only" data-lang-key="languageLabel">Idioma</label>
+                    <select id="languageSelect" class="w-full">
+                        <option value="pt-br">Português</option>
+                        <option value="en">English</option>
+                    </select>
                 </div>
             </div>
-        </header>
-
-        <!-- =========== Conteúdo Principal =========== -->
-        <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h2 id="page-title" class="text-3xl font-bold text-white mb-6">Explore Histórias</h2>
-            <div id="user-id-display" class="bg-gray-800 p-4 rounded-lg shadow-inner mb-6 hidden flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0 md:space-x-4">
-                <p class="text-sm text-gray-400 truncate">Seu ID de Usuário: <span id="user-id-text" class="text-white font-mono"></span></p>
-                <button id="copy-id-btn" class="bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold py-1 px-3 rounded-full transition-colors duration-300">
-                    <i class="fas fa-copy mr-1"></i>Copiar ID
-                </button>
-            </div>
             
-            <!-- Ferramentas de Busca e Filtro -->
-            <div id="search-bar" class="flex flex-col md:flex-row gap-4 mb-8">
-                <input type="text" id="search-input" placeholder="Pesquisar por título..." class="w-full md:w-1/2 bg-gray-800 border border-gray-700 rounded-lg p-2 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                <select id="genre-filter" class="w-full md:w-auto bg-gray-800 border border-gray-700 rounded-lg p-2 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    <option value="all">Todos os Gêneros</option>
-                    <option value="fantasia">Fantasia</option>
-                    <option value="ficcao-cientifica">Ficção Científica</option>
-                    <option value="romance">Romance</option>
-                    <option value="terror">Terror</option>
-                    <option value="aventura">Aventura</option>
-                    <option value="misterio">Mistério</option>
-                </select>
-                <select id="sort-filter" class="w-full md:w-auto bg-gray-800 border border-gray-700 rounded-lg p-2 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    <option value="recent">Mais Recentes</option>
-                    <option value="likes">Mais Curtidas</option>
-                </select>
-            </div>
-
-            <div id="loading-spinner" class="text-center py-10">
-                <svg class="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <p class="mt-2 text-gray-400">Carregando histórias...</p>
-            </div>
-            <div id="stories-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-            <p id="no-stories-message" class="text-center text-gray-400 py-10 hidden">Nenhuma história encontrada. Tente um filtro diferente ou seja o primeiro a escrever!</p>
-        </main>
-    </div>
-
-    <!-- =========== Nova Página de Escrita =========== -->
-    <div id="writing-page" class="fixed inset-0 bg-gray-900 z-50 hidden flex page-enter">
-        <!-- Barra de Ferramentas Lateral -->
-        <aside class="w-full sm:w-64 bg-gray-800 p-6 flex flex-col shadow-lg">
-            <h2 class="text-white text-2xl font-bold mb-8">Escreva</h2>
-            <div class="flex-grow space-y-4">
-                <label for="story-genre" class="text-gray-400 text-sm">Gênero</label>
-                <select id="story-genre" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    <option value="fantasia">Fantasia</option>
-                    <option value="ficcao-cientifica">Ficção Científica</option>
-                    <option value="romance">Romance</option>
-                    <option value="terror">Terror</option>
-                    <option value="aventura">Aventura</option>
-                    <option value="misterio">Mistério</option>
-                </select>
-                <!-- Botões de formatação de texto podem ser adicionados aqui no futuro -->
-            </div>
-            <div class="space-y-2 mt-8">
-                <button id="publish-story-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">Publicar</button>
-                <button id="back-to-main-btn" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors">Voltar</button>
-            </div>
-        </aside>
-
-        <!-- Área de Escrita Central -->
-        <main class="flex-1 bg-gray-900 p-8 overflow-y-auto">
-            <div class="max-w-4xl mx-auto bg-gray-100 dark:bg-gray-800 p-10 md:p-16 rounded-lg writing-sheet">
-                <input id="story-title" type="text" placeholder="Título da sua história" class="w-full bg-transparent text-gray-900 dark:text-white text-4xl font-bold border-none focus:outline-none mb-8">
-                <textarea id="story-content" placeholder="Comece a escrever aqui..." class="w-full h-[60vh] bg-transparent text-gray-700 dark:text-gray-300 border-none focus:outline-none resize-none writing-area"></textarea>
-            </div>
-        </main>
-    </div>
-
-    <!-- =========== Modal do Leitor (com botões de ação) =========== -->
-    <div id="reader-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 hidden">
-        <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col modal-enter">
-            <div class="p-6 border-b border-gray-700 flex justify-between items-start">
-                <div>
-                    <h3 id="reader-title" class="text-3xl font-bold text-white"></h3>
-                    <p class="text-sm text-gray-400 mt-1">por <span id="reader-author" class="font-semibold text-gray-200"></span></p>
-                    <div id="story-actions" class="mt-4 space-x-2 hidden">
-                        <button id="edit-story-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1 px-3 rounded-full transition-colors duration-300">
-                            <i class="fas fa-edit mr-1"></i>Editar
-                        </button>
-                        <button id="delete-story-btn" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-1 px-3 rounded-full transition-colors duration-300">
-                            <i class="fas fa-trash-alt mr-1"></i>Excluir
-                        </button>
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Seletor de Animais -->
+                <div class="input-group">
+                    <label for="animal1" data-lang-key="animal1Label">Animal 1</label>
+                    <select id="animal1" class="w-full"></select>
                 </div>
-                <button id="close-reader-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
-            </div>
-            <div class="p-6 flex-grow overflow-y-auto">
-                <p id="reader-content" class="text-gray-300 story-content whitespace-pre-wrap"></p>
-                <div class="mt-8 pt-6 border-t border-gray-700">
-                    <div class="flex items-center space-x-4 mb-6">
-                        <button id="like-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors duration-300">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                            </svg>
-                            <span>Curtir</span>
-                        </button>
-                        <span id="like-count" class="text-sm font-medium text-white">0</span>
-                    </div>
-                    <h4 class="text-xl font-bold text-white mb-4">Comentários</h4>
-                    <div id="comments-section" class="space-y-4 mb-6"></div>
-                    <div class="flex space-x-3">
-                        <input id="comment-input" type="text" placeholder="Escreva um comentário..." class="flex-1 bg-gray-700 border border-gray-600 text-white p-2 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <button id="submit-comment-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">Enviar</button>
-                    </div>
+                <div class="input-group">
+                    <label for="animal2" data-lang-key="animal2Label">Animal 2 (Opcional)</label>
+                    <select id="animal2" class="w-full"></select>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- =========== Scripts =========== -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, increment, query, serverTimestamp, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        
-        // Ativar o registro de logs do Firebase para depuração
-        setLogLevel('debug');
-        
-        // Variáveis globais fornecidas pelo ambiente
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'literarium-default';
-        const firebaseConfig = {
-            apiKey: "AIzaSyB6lUYQEGmohT3uMap8rlehnT46pTriyf8",
-            authDomain: "literarium-d6a16.firebaseapp.com",
-            projectId: "literarium-d6a16",
-            storageBucket: "literarium-d6a16.firebasestorage.app",
-            messagingSenderId: "670871937734",
-            appId: "1:670871937734:web:24713c99474601387bedc7",
-            measurementId: "G-Y2Y64LKDMQ"
-        };
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        let app, auth, db, currentUser = null, currentStoryId, isEditing = false;
-        let allStories = [], unsubscribeStories = null, unsubscribeComments = null;
-        let pendingDeleteStoryId = null;
 
-        // Elementos da UI
-        const mainContent = document.getElementById('main-content');
-        const writingPage = document.getElementById('writing-page');
-        const readerModal = document.getElementById('reader-modal');
-        const storiesGrid = document.getElementById('stories-grid');
-        const loadingSpinner = document.getElementById('loading-spinner');
-        const noStoriesMessage = document.getElementById('no-stories-message');
-        const pageTitle = document.getElementById('page-title');
-        const searchInput = document.getElementById('search-input');
-        const genreFilter = document.getElementById('genre-filter');
-        const sortFilter = document.getElementById('sort-filter');
-        const userIdDisplay = document.getElementById('user-id-display');
-        const userIdText = document.getElementById('user-id-text');
-        const messageBox = document.getElementById('message-box');
-        const messageText = document.getElementById('message-text');
-        const confirmModal = document.getElementById('confirmation-modal');
-        const confirmMessage = document.getElementById('confirm-message');
-        const confirmOkBtn = document.getElementById('confirm-ok-btn');
-        const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+                <!-- Gênero e Estilo de Arte -->
+                <div class="input-group">
+                    <label for="gender" data-lang-key="genderLabel">Gênero</label>
+                    <select id="gender" class="w-full"></select>
+                </div>
+                <div class="input-group">
+                    <label for="artStyle" data-lang-key="artStyleLabel">Estilo de Arte</label>
+                    <select id="artStyle" class="w-full"></select>
+                </div>
 
-        /**
-         * Inicializa o aplicativo Firebase e configura os observadores e eventos.
-         */
-        async function initializeAppAndListeners() {
-            if (Object.keys(firebaseConfig).length === 0) {
-                showMessage('Erro: Configuração do Firebase ausente.', 'error');
-                loadingSpinner.innerHTML = '<p class="text-red-400">Erro: Configuração do Firebase ausente.</p>';
-                return;
-            }
-
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-
-            setupEventListeners();
-            setupAuthObserver();
-        }
-
-        /**
-         * Gerencia a autenticação do usuário.
-         */
-        async function setupAuthObserver() {
-            // Tenta fazer login com o token fornecido pelo ambiente
-            if (initialAuthToken) {
-                try {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Login com token inicial bem-sucedido.");
-                } catch (error) {
-                    console.error("Erro ao fazer login com token inicial:", error);
-                    // Tenta login anônimo como fallback
-                    await signInAnonymously(auth);
-                }
-            } else {
-                 await signInAnonymously(auth);
-            }
-
-            // Observa o estado de autenticação para atualizar a UI
-            onAuthStateChanged(auth, (user) => {
-                currentUser = user;
-                updateUIForAuthState();
-                fetchStories();
-            });
-        }
-        
-        /**
-         * Atualiza a interface do usuário com base no estado de autenticação.
-         */
-        function updateUIForAuthState() {
-            const loginBtn = document.getElementById('login-btn');
-            const userProfile = document.getElementById('user-profile');
-
-            if (currentUser && currentUser.isAnonymous === false) {
-                loginBtn.classList.add('hidden');
-                userProfile.classList.remove('hidden');
-                userProfile.classList.add('flex');
-                document.getElementById('user-avatar').src = currentUser.photoURL;
-                document.getElementById('user-name').textContent = currentUser.displayName;
-                userIdDisplay.classList.remove('hidden');
-                userIdDisplay.classList.add('flex');
-                userIdText.textContent = currentUser.uid;
-            } else {
-                loginBtn.classList.remove('hidden');
-                userProfile.classList.add('hidden');
-                userProfile.classList.remove('flex');
-                userIdDisplay.classList.add('hidden');
-                userIdDisplay.classList.remove('flex');
-            }
-        }
-        
-        /**
-         * Autentica o usuário com o Google.
-         */
-        async function signInWithGoogle() {
-            const provider = new GoogleAuthProvider();
-            try {
-                await signInWithPopup(auth, provider);
-                showMessage('Login realizado com sucesso!', 'success');
-            } catch (error) {
-                console.error("Erro ao fazer login:", error);
-                showMessage('Erro ao fazer login. Tente novamente.', 'error');
-            }
-        }
-        
-        /**
-         * Faz o logout do usuário.
-         */
-        async function signOutUser() {
-            try {
-                await signOut(auth);
-                showMessage('Você saiu da sua conta.', 'info');
-            } catch (error) {
-                console.error("Erro ao fazer logout:", error);
-                showMessage('Erro ao fazer logout.', 'error');
-            }
-        }
-
-        /**
-         * Configura todos os ouvintes de eventos da UI.
-         */
-        function setupEventListeners() {
-            document.getElementById('login-btn').addEventListener('click', signInWithGoogle);
-            document.getElementById('logout-btn').addEventListener('click', signOutUser);
-            document.getElementById('write-story-btn').addEventListener('click', openWritingPage);
-            document.getElementById('back-to-main-btn').addEventListener('click', closeWritingPage);
-            document.getElementById('publish-story-btn').addEventListener('click', handlePublishStory);
-            document.getElementById('close-reader-btn').addEventListener('click', closeReader);
-            document.getElementById('like-btn').addEventListener('click', handleLike);
-            document.getElementById('submit-comment-btn').addEventListener('click', handleAddComment);
-            document.getElementById('search-input').addEventListener('input', filterAndRenderStories);
-            document.getElementById('genre-filter').addEventListener('change', filterAndRenderStories);
-            document.getElementById('sort-filter').addEventListener('change', filterAndRenderStories);
-            document.getElementById('my-stories-btn').addEventListener('click', openMyStoriesPage);
-            document.getElementById('copy-id-btn').addEventListener('click', copyUserId);
-            document.getElementById('edit-story-btn').addEventListener('click', handleEditStory);
-            document.getElementById('delete-story-btn').addEventListener('click', handleDeleteStory);
-            confirmOkBtn.addEventListener('click', handleConfirmOk);
-            confirmCancelBtn.addEventListener('click', closeConfirmModal);
-        }
-
-        /**
-         * Abre a página de escrita.
-         */
-        function openWritingPage() {
-            mainContent.classList.add('hidden');
-            writingPage.classList.remove('hidden');
-            writingPage.classList.add('page-enter-active');
-            isEditing = false;
-        }
-
-        /**
-         * Fecha a página de escrita e volta para a principal.
-         */
-        function closeWritingPage() {
-            writingPage.classList.add('hidden');
-            writingPage.classList.remove('page-enter-active');
-            mainContent.classList.remove('hidden');
-            document.getElementById('story-title').value = '';
-            document.getElementById('story-content').value = '';
-            isEditing = false;
-        }
-
-        /**
-         * Abre a página de histórias do usuário atual.
-         */
-        function openMyStoriesPage() {
-            pageTitle.textContent = 'Minhas Histórias';
-            searchInput.value = '';
-            genreFilter.value = 'all';
-            sortFilter.value = 'recent';
-            filterAndRenderStories(true);
-        }
-
-        /**
-         * Busca as histórias no Firestore.
-         */
-        function fetchStories() {
-            if (unsubscribeStories) unsubscribeStories();
-            
-            loadingSpinner.classList.remove('hidden');
-            noStoriesMessage.classList.add('hidden');
-
-            const storiesRef = collection(db, `artifacts/${appId}/public/data/stories`);
-            const q = query(storiesRef);
-
-            unsubscribeStories = onSnapshot(q, (snapshot) => {
-                allStories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // A ordenação inicial é feita por data de criação no client-side
-                allStories.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
-                filterAndRenderStories();
-                loadingSpinner.classList.add('hidden');
-            }, (error) => {
-                console.error("Erro ao buscar histórias:", error);
-                loadingSpinner.innerHTML = '<p class="text-red-400">Não foi possível carregar as histórias.</p>';
-            });
-        }
-        
-        /**
-         * Filtra e renderiza as histórias na grade.
-         */
-        function filterAndRenderStories(myStoriesOnly = false) {
-            const searchTerm = searchInput.value.toLowerCase();
-            const selectedGenre = genreFilter.value;
-            const sortBy = sortFilter.value;
-            
-            let filteredStories = allStories;
-
-            if (myStoriesOnly && currentUser) {
-                filteredStories = filteredStories.filter(story => story.authorId === currentUser.uid);
-            } else {
-                 pageTitle.textContent = 'Explore Histórias';
-            }
-
-            if (searchTerm) {
-                filteredStories = filteredStories.filter(story => story.title.toLowerCase().includes(searchTerm));
-            }
-
-            if (selectedGenre !== 'all') {
-                filteredStories = filteredStories.filter(story => story.genre === selectedGenre);
-            }
-
-            // Nova lógica de ordenação
-            if (sortBy === 'likes') {
-                filteredStories.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-            } else {
-                filteredStories.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
-            }
-            
-            renderStories(filteredStories);
-        }
-
-        /**
-         * Renderiza as histórias na UI.
-         */
-        function renderStories(stories) {
-            storiesGrid.innerHTML = '';
-            if (stories.length === 0) {
-                noStoriesMessage.classList.remove('hidden');
-            } else {
-                noStoriesMessage.classList.add('hidden');
-                storiesGrid.innerHTML = stories.map(story => `
-                    <div class="bg-gray-800 rounded-lg p-5 shadow-lg cursor-pointer hover:bg-gray-700/50 transition-colors duration-300" data-id="${story.id}">
-                        <h3 class="text-xl font-bold text-white mb-2 truncate">${story.title}</h3>
-                        <p class="text-gray-400 text-sm mb-4">por <span class="font-semibold text-gray-300">${story.authorName || 'Anônimo'}</span></p>
-                        <p class="text-gray-300 h-24 overflow-hidden text-ellipsis">${story.content}</p>
-                        <div class="mt-4 flex items-center justify-between text-sm text-gray-400">
-                            <span>❤️ ${story.likes || 0}</span>
-                            <span>💬 ${story.commentCount || 0}</span>
-                        </div>
-                    </div>
-                `).join('');
-
-                storiesGrid.querySelectorAll('[data-id]').forEach(card => {
-                    card.addEventListener('click', () => openReader(card.dataset.id));
-                });
-            }
-        }
-        
-        /**
-         * Lida com a publicação e edição de uma história.
-         */
-        async function handlePublishStory() {
-            const title = document.getElementById('story-title').value.trim();
-            const content = document.getElementById('story-content').value.trim();
-            const genre = document.getElementById('story-genre').value;
-            const publishBtn = document.getElementById('publish-story-btn');
-
-            if (!title || !content) {
-                showMessage("Por favor, preencha o título e o conteúdo da história.", 'warning');
-                return;
-            }
-            if (!currentUser) {
-                showMessage("Você precisa estar logado para publicar.", 'error');
-                return;
-            }
-
-            publishBtn.disabled = true;
-            publishBtn.textContent = isEditing ? 'Salvando...' : 'Publicando...';
-
-            try {
-                if (isEditing) {
-                    const storyRef = doc(db, `artifacts/${appId}/public/data/stories`, currentStoryId);
-                    await updateDoc(storyRef, { title, content, genre });
-                    showMessage('História atualizada com sucesso!', 'success');
-                } else {
-                    const storiesRef = collection(db, `artifacts/${appId}/public/data/stories`);
-                    await addDoc(storiesRef, {
-                        title,
-                        content,
-                        genre,
-                        authorId: currentUser.uid,
-                        authorName: currentUser.displayName,
-                        authorPhotoURL: currentUser.photoURL,
-                        createdAt: serverTimestamp(),
-                        likes: 0,
-                        commentCount: 0,
-                    });
-                    showMessage('História publicada com sucesso!', 'success');
-                }
-                closeWritingPage();
-            } catch (error) {
-                console.error("Erro ao publicar história:", error);
-                showMessage("Ocorreu um erro ao publicar sua história.", 'error');
-            } finally {
-                publishBtn.disabled = false;
-                publishBtn.textContent = isEditing ? 'Salvar' : 'Publicar';
-            }
-        }
-        
-        /**
-         * Abre o modal do leitor de histórias.
-         */
-        async function openReader(storyId) {
-            currentStoryId = storyId;
-            const storyActions = document.getElementById('story-actions');
-            try {
-                const storyRef = doc(db, `artifacts/${appId}/public/data/stories`, storyId);
-                const storySnap = await getDoc(storyRef);
-
-                if (storySnap.exists()) {
-                    const story = storySnap.data();
-                    document.getElementById('reader-title').textContent = story.title;
-                    document.getElementById('reader-author').textContent = story.authorName || 'Anônimo';
-                    document.getElementById('reader-content').textContent = story.content;
-                    document.getElementById('like-count').textContent = story.likes || 0;
-                    
-                    if (currentUser && story.authorId === currentUser.uid) {
-                        storyActions.classList.remove('hidden');
-                    } else {
-                        storyActions.classList.add('hidden');
-                    }
-
-                    readerModal.classList.remove('hidden');
-                    readerModal.querySelector('div').classList.add('modal-enter-active');
-
-                    fetchComments(storyId);
-                } else {
-                    showMessage('História não encontrada.', 'error');
-                }
-            } catch (error) {
-                console.error("Erro ao abrir história:", error);
-                showMessage("Erro ao carregar história.", 'error');
-            }
-        }
-
-        /**
-         * Fecha o modal do leitor.
-         */
-        function closeReader() {
-            if (unsubscribeComments) unsubscribeComments();
-            readerModal.querySelector('div').classList.remove('modal-enter-active');
-            readerModal.classList.add('hidden');
-            currentStoryId = null;
-        }
-        
-        /**
-         * Lida com o clique no botão de "Curtir".
-         */
-        async function handleLike() {
-            if (!currentUser || !currentStoryId) {
-                showMessage("Você precisa estar logado para curtir.", 'warning');
-                return;
-            }
-            const storyRef = doc(db, `artifacts/${appId}/public/data/stories`, currentStoryId);
-            try {
-                await updateDoc(storyRef, { likes: increment(1) });
-                const currentLikes = parseInt(document.getElementById('like-count').textContent);
-                document.getElementById('like-count').textContent = currentLikes + 1;
-            } catch (error) {
-                console.error("Erro ao curtir história:", error);
-                showMessage('Erro ao curtir a história.', 'error');
-            }
-        }
-        
-        /**
-         * Busca e observa os comentários de uma história.
-         */
-        function fetchComments(storyId) {
-            if (unsubscribeComments) unsubscribeComments();
-            const commentsRef = collection(db, `artifacts/${appId}/public/data/stories/${storyId}/comments`);
-            const q = query(commentsRef);
-            unsubscribeComments = onSnapshot(q, (snapshot) => {
-                const comments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                comments.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
-                renderComments(comments);
-            }, (error) => {
-                console.error("Erro ao buscar comentários:", error);
-                showMessage('Erro ao carregar comentários.', 'error');
-            });
-        }
-        
-        /**
-         * Renderiza os comentários na UI.
-         */
-        function renderComments(comments) {
-            const commentsSection = document.getElementById('comments-section');
-            if (comments.length === 0) {
-                commentsSection.innerHTML = '<p class="text-sm text-gray-500">Nenhum comentário ainda.</p>';
-            } else {
-                commentsSection.innerHTML = comments.map(comment => `
-                    <div class="bg-gray-700/50 p-3 rounded-lg">
-                        <p class="text-xs text-gray-400 font-semibold">${comment.authorName || 'Anônimo'}</p>
-                        <p class="text-sm text-gray-300 comment-text">${comment.text}</p>
-                    </div>
-                `).join('');
-            }
-        }
-
-        /**
-         * Lida com a adição de um novo comentário.
-         */
-        async function handleAddComment() {
-            const commentInput = document.getElementById('comment-input');
-            const text = commentInput.value.trim();
-            if (!text || !currentUser || !currentStoryId) {
-                showMessage("Você precisa estar logado para comentar.", 'warning');
-                return;
-            }
-            
-            try {
-                const commentsRef = collection(db, `artifacts/${appId}/public/data/stories/${currentStoryId}/comments`);
-                await addDoc(commentsRef, {
-                    text: text,
-                    authorId: currentUser.uid,
-                    authorName: currentUser.displayName,
-                    createdAt: serverTimestamp()
-                });
+                <!-- Pose e Fundo -->
+                <div class="input-group">
+                    <label for="pose" data-lang-key="poseLabel">Pose</label>
+                    <select id="pose" class="w-full"></select>
+                </div>
+                <div class="input-group">
+                    <label for="background" data-lang-key="backgroundLabel">Fundo</label>
+                    <select id="background" class="w-full"></select>
+                </div>
                 
-                const storyRef = doc(db, `artifacts/${appId}/public/data/stories`, currentStoryId);
-                await updateDoc(storyRef, { commentCount: increment(1) });
-                commentInput.value = '';
-                showMessage('Comentário adicionado!', 'success');
-            } catch (error) {
-                console.error("Erro ao adicionar comentário:", error);
-                showMessage('Erro ao adicionar comentário.', 'error');
-            }
-        }
+                <!-- Enquadramento da Imagem -->
+                <div class="input-group">
+                    <label for="framing" data-lang-key="framingLabel">Enquadramento da Imagem</label>
+                    <select id="framing" class="w-full"></select>
+                </div>
 
-        /**
-         * Lida com a ação de editar uma história.
-         */
-        async function handleEditStory() {
-            if (!currentStoryId) return;
+                <!-- Cor Principal (TEXTO) -->
+                <div class="input-group">
+                    <label for="primaryColor" data-lang-key="colorLabel">Cor da Pelagem</label>
+                    <textarea id="primaryColor" data-lang-key="colorPlaceholder" placeholder="Ex: golden yellow, crimson red, neon blue..." class="h-12"></textarea>
+                </div>
 
-            try {
-                const storyRef = doc(db, `artifacts/${appId}/public/data/stories`, currentStoryId);
-                const storySnap = await getDoc(storyRef);
-                const story = storySnap.data();
+                <!-- Roupa -->
+                <div class="input-group">
+                    <label for="clothing" data-lang-key="clothingLabel">Roupa</label>
+                    <select id="clothing" class="w-full"></select>
+                </div>
 
-                if (story && story.authorId === currentUser.uid) {
-                    closeReader();
-                    document.getElementById('story-title').value = story.title;
-                    document.getElementById('story-content').value = story.content;
-                    document.getElementById('story-genre').value = story.genre;
-                    document.getElementById('publish-story-btn').textContent = 'Salvar';
-                    isEditing = true;
-                    openWritingPage();
-                } else {
-                    showMessage("Você não tem permissão para editar esta história.", 'error');
-                }
-            } catch (error) {
-                console.error("Erro ao carregar história para edição:", error);
-                showMessage("Erro ao carregar história para edição.", 'error');
-            }
-        }
-        
-        /**
-         * Lida com a ação de excluir uma história, usando um modal de confirmação.
-         */
-        function handleDeleteStory() {
-            if (!currentStoryId || !currentUser) {
-                showMessage("Você precisa estar logado para excluir histórias.", 'warning');
-                return;
-            }
+                <!-- Estilos de Cabelo, Cauda e Orelhas -->
+                <div class="input-group">
+                    <label for="hairStyle" data-lang-key="hairStyleLabel">Estilo de Cabelo</label>
+                    <select id="hairStyle" class="w-full"></select>
+                </div>
+                <div class="input-group">
+                    <label for="tailStyle" data-lang-key="tailStyleLabel">Estilo da Cauda</label>
+                    <select id="tailStyle" class="w-full"></select>
+                </div>
+                <div class="input-group">
+                    <label for="earStyle" data-lang-key="earStyleLabel">Estilo das Orelhas</label>
+                    <select id="earStyle" class="w-full"></select>
+                </div>
+            </div>
             
-            showConfirmModal("Tem certeza que deseja excluir esta história? Esta ação é irreversível.", async () => {
-                pendingDeleteStoryId = currentStoryId;
-                try {
-                    const storyRef = doc(db, `artifacts/${appId}/public/data/stories`, pendingDeleteStoryId);
-                    const storySnap = await getDoc(storyRef);
-                    const story = storySnap.data();
+            <!-- Controles de Proporções -->
+            <div class="mt-4">
+                <h3 class="text-xl font-bold text-[--light-text] mb-2" data-lang-key="proportionsTitle">Proporções do Corpo</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="input-group slider-group">
+                        <label for="headSize" class="w-24" data-lang-key="headSizeLabel">Cabeça</label>
+                        <input type="range" id="headSize" min="0" max="100" value="50">
+                    </div>
+                    <div class="input-group slider-group">
+                        <label for="chestSize" class="w-24" data-lang-key="chestSizeLabel">Peito</label>
+                        <input type="range" id="chestSize" min="0" max="100" value="50">
+                    </div>
+                    <div class="input-group slider-group">
+                        <label for="legsSize" class="w-24" data-lang-key="legsSizeLabel">Pernas</label>
+                        <input type="range" id="legsSize" min="0" max="100" value="50">
+                    </div>
+                    <div class="input-group slider-group">
+                        <label for="bustSize" class="w-24" data-lang-key="bustSizeLabel">Busto</label>
+                        <input type="range" id="bustSize" min="0" max="100" value="50">
+                    </div>
+                </div>
+            </div>
 
-                    if (!story || story.authorId !== currentUser.uid) {
-                        showMessage("Você não tem permissão para excluir esta história.", 'error');
-                        return;
+            <div class="input-group">
+                <label for="traits" data-lang-key="traitsLabel">Traços e Detalhes Adicionais (opcional)</label>
+                <textarea id="traits" data-lang-key="traitsPlaceholder" placeholder="Ex: olhos verdes, cicatriz no rosto, óculos..."></textarea>
+            </div>
+            
+            <button id="generate-btn" class="btn mt-4" data-lang-key="generateBtn">Gerar Imagem</button>
+        </div>
+
+        <!-- Painel de Edição (Inicialmente Oculto) -->
+        <div class="panel hidden" id="edit-panel">
+            <h2 class="text-3xl font-bold text-center text-[--light-text] mb-4" data-lang-key="editTitle">Editar Fursona</h2>
+            <p class="text-center text-gray-400 mb-6" data-lang-key="editDescription">Altere os detalhes abaixo e clique em "Re-gerar Imagem" para criar uma nova versão.</p>
+            
+            <div class="input-group">
+                <label for="facialExpression" data-lang-key="facialExpressionLabel">Expressão Facial</label>
+                <select id="facialExpression" class="w-full"></select>
+            </div>
+
+            <div class="input-group">
+                <label for="gazeDirection" data-lang-key="gazeDirectionLabel">Direção do Olhar</label>
+                <select id="gazeDirection" class="w-full"></select>
+            </div>
+            
+            <button id="regenerate-btn" class="btn mt-4" data-lang-key="regenerateBtn">Re-gerar Imagem</button>
+            <button id="back-btn" class="btn mt-4 bg-gray-600 hover:bg-gray-700" data-lang-key="backBtn">Voltar</button>
+        </div>
+
+        <!-- Painel de Imagem -->
+        <div class="panel image-container">
+            <div class="loading-overlay" id="loading-overlay">
+                <div class="spinner"></div>
+                <p class="mt-4" id="loading-text" data-lang-key="loadingText">Gerando sua arte...</p>
+            </div>
+            <img id="result-image" src="" alt="Imagem Gerada">
+            
+            <div id="action-buttons" class="hidden flex flex-col sm:flex-row gap-4 mt-4">
+                <button id="edit-btn" class="btn bg-gray-600 hover:bg-gray-700 w-full sm:w-auto" data-lang-key="editBtn">Editar</button>
+                <button id="download-btn" class="btn bg-blue-600 hover:bg-blue-700 w-full sm:w-auto" data-lang-key="downloadBtn">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const languageSelect = document.getElementById('languageSelect');
+            const animal1Select = document.getElementById('animal1');
+            const animal2Select = document.getElementById('animal2');
+            const genderSelect = document.getElementById('gender');
+            const artStyleSelect = document.getElementById('artStyle');
+            const poseSelect = document.getElementById('pose');
+            const backgroundSelect = document.getElementById('background');
+            const tailStyleSelect = document.getElementById('tailStyle');
+            const earStyleSelect = document.getElementById('earStyle');
+            const hairStyleSelect = document.getElementById('hairStyle');
+            const clothingSelect = document.getElementById('clothing');
+            const framingSelect = document.getElementById('framing');
+            const facialExpressionSelect = document.getElementById('facialExpression');
+            const gazeDirectionSelect = document.getElementById('gazeDirection');
+            
+            const generateButton = document.getElementById('generate-btn');
+            const regenerateButton = document.getElementById('regenerate-btn');
+            const editButton = document.getElementById('edit-btn');
+            const backButton = document.getElementById('back-btn');
+            const downloadButton = document.getElementById('download-btn');
+            const resultImage = document.getElementById('result-image');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const loadingText = document.getElementById('loading-text');
+            const mainPanel = document.getElementById('main-panel');
+            const editPanel = document.getElementById('edit-panel');
+            const actionButtonsDiv = document.getElementById('action-buttons');
+
+            const headSizeInput = document.getElementById('headSize');
+            const chestSizeInput = document.getElementById('chestSize');
+            const legsSizeInput = document.getElementById('legsSize');
+            const bustSizeInput = document.getElementById('bustSize');
+            const traitsInput = document.getElementById('traits');
+            const primaryColorInput = document.getElementById('primaryColor');
+
+            let lastPrompt = '';
+            let imageDataUrl = '';
+
+            const translations = {
+                'pt-br': {
+                    createTitle: 'Criar Meu Fursona',
+                    animal1Label: 'Animal 1',
+                    animal2Label: 'Animal 2 (Opcional)',
+                    genderLabel: 'Gênero',
+                    artStyleLabel: 'Estilo de Arte',
+                    poseLabel: 'Pose',
+                    backgroundLabel: 'Fundo',
+                    framingLabel: 'Enquadramento da Imagem',
+                    colorLabel: 'Cor da Pelagem',
+                    colorPlaceholder: 'Ex: amarelo dourado, vermelho carmesim, azul neon...',
+                    clothingLabel: 'Roupa',
+                    hairStyleLabel: 'Estilo de Cabelo',
+                    tailStyleLabel: 'Estilo da Cauda',
+                    earStyleLabel: 'Estilo das Orelhas',
+                    proportionsTitle: 'Proporções do Corpo',
+                    headSizeLabel: 'Cabeça',
+                    chestSizeLabel: 'Peito',
+                    legsSizeLabel: 'Pernas',
+                    bustSizeLabel: 'Busto',
+                    traitsLabel: 'Traços e Detalhes Adicionais (opcional)',
+                    traitsPlaceholder: 'Ex: olhos verdes, cicatriz no rosto, óculos...',
+                    generateBtn: 'Gerar Imagem',
+                    editTitle: 'Editar Fursona',
+                    editDescription: 'Altere os detalhes abaixo e clique em "Re-gerar Imagem" para criar uma nova versão.',
+                    facialExpressionLabel: 'Expressão Facial',
+                    gazeDirectionLabel: 'Direção do Olhar',
+                    regenerateBtn: 'Re-gerar Imagem',
+                    backBtn: 'Voltar',
+                    editBtn: 'Editar',
+                    downloadBtn: 'Download',
+                    loadingText: 'Gerando sua arte...',
+                    errorText: 'Erro. Tentando novamente...',
+                    finalErrorText: 'Erro ao gerar a arte. Por favor, tente novamente.',
+                    animals: [{ value: 'cat', text: 'Gato' }, { value: 'wolf', text: 'Lobo' }, { value: 'fox', text: 'Raposa' }, { value: 'tiger', text: 'Tigre' }, { value: 'lion', text: 'Leão' }, { value: 'dragon', text: 'Dragão' }, { value: 'rabbit', text: 'Coelho' }, { value: 'deer', text: 'Veado' }, { value: 'bear', text: 'Urso' }, { value: 'bird', text: 'Pássaro' }, { value: 'shark', text: 'Tubarão' }, { value: 'protogen', text: 'Protogen' }, { value: 'hyena', text: 'Hiena' }, { value: 'red panda', text: 'Panda Vermelho' }, { value: 'otter', text: 'Lontra' }, { value: 'skunk', text: 'Gambá' }, { value: 'fennec fox', text: 'Raposa Fennec' }, { value: 'goat', text: 'Cabra' }],
+                    genders: [{ value: 'male', text: 'Masculino' }, { value: 'female', text: 'Feminino' }],
+                    artStyles: [{ value: 'digital art', text: 'Arte Digital' }, { value: 'watercolor painting', text: 'Aquarela' }, { value: 'pixel art', text: 'Pixel Art' }, { value: 'stylized cartoon', text: 'Desenho Animado' }, { value: 'realistic', text: 'Realista' }, { value: 'chibi', text: 'Chibi' }],
+                    poses: [{ value: 'standing', text: 'De Pé' }, { value: 'sitting', text: 'Sentado' }, { value: 'running', text: 'Correndo' }, { value: 'walking', text: 'Andando' }, { value: 'jumping', text: 'Saltando' }, { value: 'sitting on a chair', text: 'Sentado em uma cadeira' }, { value: 'dancing', text: 'Dançando' }, { value: 'fighting stance', text: 'Posição de Luta' }, { value: 'looking into a mirror', text: 'Olhando no espelho' }],
+                    backgrounds: [{ value: 'minimalist studio background', text: 'Fundo Mínimo' }, { value: 'forest', text: 'Floresta' }, { value: 'cityscape', text: 'Paisagem Urbana' }, { value: 'beach', text: 'Praia' }, { value: 'mountains', text: 'Montanhas' }, { value: 'space nebula', text: 'Nebulosa Espacial' }],
+                    clothing: [{ value: 'no clothes', text: 'Sem Roupa (Feral SFW)'}, { value: 'casual clothes', text: 'Roupas Casuais'}, { value: 'fantasy armor', text: 'Armadura de Fantasia'}, { value: 'modern street clothes', text: 'Roupas de Rua Modernas'}],
+                    hairStyles: [{ value: 'short hair', text: 'Cabelo Curto'}, { value: 'long hair', text: 'Cabelo Longo'}, { value: 'spiky hair', text: 'Cabelo Espetado'}, { value: 'braided hair', text: 'Cabelo Trançado'}, { value: 'no hair', text: 'Nenhum Cabelo'}, { value: 'long ponytail', text: 'Rabo de Cavalo Longo'}, { value: 'mohawk', text: 'Moicano'}, { value: 'shaved head', text: 'Cabeça Raspada'}, { value: 'curly hair', text: 'Cabelo Cacheado'}],
+                    tailStyles: [{ value: 'long fluffy tail', text: 'Longa e Fofa' }, { value: 'short bushy tail', text: 'Curta e Cheia' }, { value: 'spiky tail', text: 'Com Espinhos' }, { value: 'thin and long tail', text: 'Fina e Longa' }, { value: 'dragon-like tail', text: 'De Dragão' }, { value: 'curly tail', text: 'Cauda Enrolada' }, { value: 'bobtail', text: 'Cauda Curta' }, { value: 'scaly tail', text: 'Cauda Escamosa' }],
+                    earStyles: [{ value: 'large pointy ears', text: 'Grandes e Pontudas' }, { value: 'floppy ears', text: 'Caídas' }, { value: 'short and round ears', text: 'Curtas e Redondas' }, { value: 'long rabbit-like ears', text: 'Longas (de Coelho)' }, { value: 'round ears', text: 'Orelhas Redondas' }, { value: 'pointed ears', text: 'Orelhas Pontudas' }, { value: 'folded ears', text: 'Orelhas Dobradas' }],
+                    framings: [{ value: 'full body', text: 'Corpo Inteiro' }, { value: 'bust-up', text: 'Busto' }, { value: 'headshot', text: 'Rosto' }, { value: 'half-body', text: 'Meio Corpo' }],
+                    facialExpressions: [{ value: 'smiling', text: 'Sorrindo' }, { value: 'neutral', text: 'Neutra' }, { value: 'serious', text: 'Séria' }, { value: 'surprised', text: 'Surpresa' }, { value: 'angry', text: 'Com Raiva' }, { value: 'sad', text: 'Triste' }],
+                    gazeDirections: [{ value: 'looking straight at the camera', text: 'Olhando para a Câmera' }, { value: 'looking to the left', text: 'Olhando para a Esquerda' }, { value: 'looking to the right', text: 'Olhando para a Direita' }, { value: 'looking up', text: 'Olhando para Cima' }, { value: 'looking down', text: 'Olhando para Baixo' }]
+                },
+                'en': {
+                    createTitle: 'Create My Fursona',
+                    animal1Label: 'Animal 1',
+                    animal2Label: 'Animal 2 (Optional)',
+                    genderLabel: 'Gender',
+                    artStyleLabel: 'Art Style',
+                    poseLabel: 'Pose',
+                    backgroundLabel: 'Background',
+                    framingLabel: 'Image Framing',
+                    colorLabel: 'Fur Color',
+                    colorPlaceholder: 'Ex: golden yellow, crimson red, neon blue...',
+                    clothingLabel: 'Clothing',
+                    hairStyleLabel: 'Hair Style',
+                    tailStyleLabel: 'Tail Style',
+                    earStyleLabel: 'Ear Style',
+                    proportionsTitle: 'Body Proportions',
+                    headSizeLabel: 'Head',
+                    chestSizeLabel: 'Chest',
+                    legsSizeLabel: 'Legs',
+                    bustSizeLabel: 'Bust',
+                    traitsLabel: 'Additional Traits and Details (optional)',
+                    traitsPlaceholder: 'Ex: green eyes, facial scar, glasses...',
+                    generateBtn: 'Generate Image',
+                    editTitle: 'Edit Fursona',
+                    editDescription: 'Change the details below and click "Re-generate Image" to create a new version.',
+                    facialExpressionLabel: 'Facial Expression',
+                    gazeDirectionLabel: 'Gaze Direction',
+                    regenerateBtn: 'Re-generate Image',
+                    backBtn: 'Back',
+                    editBtn: 'Edit',
+                    downloadBtn: 'Download',
+                    loadingText: 'Generating your art...',
+                    errorText: 'Error. Retrying...',
+                    finalErrorText: 'Failed to generate art. Please try again.',
+                    animals: [{ value: 'cat', text: 'Cat' }, { value: 'wolf', text: 'Wolf' }, { value: 'fox', text: 'Fox' }, { value: 'tiger', text: 'Tiger' }, { value: 'lion', text: 'Lion' }, { value: 'dragon', text: 'Dragon' }, { value: 'rabbit', text: 'Rabbit' }, { value: 'deer', text: 'Deer' }, { value: 'bear', text: 'Bear' }, { value: 'bird', text: 'Bird' }, { value: 'shark', text: 'Shark' }, { value: 'protogen', text: 'Protogen' }, { value: 'hyena', text: 'Hyena' }, { value: 'red panda', text: 'Red Panda' }, { value: 'otter', text: 'Otter' }, { value: 'skunk', text: 'Skunk' }, { value: 'fennec fox', text: 'Fennec Fox' }, { value: 'goat', text: 'Goat' }],
+                    genders: [{ value: 'male', text: 'Male' }, { value: 'female', text: 'Female' }],
+                    artStyles: [{ value: 'digital art', text: 'Digital Art' }, { value: 'watercolor painting', text: 'Watercolor Painting' }, { value: 'pixel art', text: 'Pixel Art' }, { value: 'stylized cartoon', text: 'Stylized Cartoon' }, { value: 'realistic', text: 'Realistic' }, { value: 'chibi', text: 'Chibi' }],
+                    poses: [{ value: 'standing', text: 'Standing' }, { value: 'sitting', text: 'Sitting' }, { value: 'running', text: 'Running' }, { value: 'walking', text: 'Walking' }, { value: 'jumping', text: 'Jumping' }, { value: 'sitting on a chair', text: 'Sitting on a chair' }, { value: 'dancing', text: 'Dancing' }, { value: 'fighting stance', text: 'Fighting Stance' }, { value: 'looking into a mirror', text: 'Looking into a mirror' }],
+                    backgrounds: [{ value: 'minimalist studio background', text: 'Minimalist Studio Background' }, { value: 'forest', text: 'Forest' }, { value: 'cityscape', text: 'Cityscape' }, { value: 'beach', text: 'Beach' }, { value: 'mountains', text: 'Mountains' }, { value: 'space nebula', text: 'Space Nebula' }],
+                    clothing: [{ value: 'no clothes', text: 'No Clothes (Feral SFW)'}, { value: 'casual clothes', text: 'Casual Clothes'}, { value: 'fantasy armor', text: 'Fantasy Armor'}, { value: 'modern street clothes', text: 'Modern Street Clothes'}],
+                    hairStyles: [{ value: 'short hair', text: 'Short Hair'}, { value: 'long hair', text: 'Long Hair'}, { value: 'spiky hair', text: 'Spiky Hair'}, { value: 'braided hair', text: 'Braided Hair'}, { value: 'no hair', text: 'No Hair'}, { value: 'long ponytail', text: 'Long Ponytail'}, { value: 'mohawk', text: 'Mohawk'}, { value: 'shaved head', text: 'Shaved Head'}, { value: 'curly hair', text: 'Curly Hair'}],
+                    tailStyles: [{ value: 'long fluffy tail', text: 'Long Fluffy Tail' }, { value: 'short bushy tail', text: 'Short Bushy Tail' }, { value: 'spiky tail', text: 'Spiky Tail' }, { value: 'thin and long tail', text: 'Thin and Long Tail' }, { value: 'dragon-like tail', text: 'Dragon-like Tail' }, { value: 'curly tail', text: 'Curly Tail' }, { value: 'bobtail', text: 'Bobtail' }, { value: 'scaly tail', text: 'Scaly Tail' }],
+                    earStyles: [{ value: 'large pointy ears', text: 'Large Pointy Ears' }, { value: 'floppy ears', text: 'Floppy Ears' }, { value: 'short and round ears', text: 'Short and Round Ears' }, { value: 'long rabbit-like ears', text: 'Long Rabbit-like Ears' }, { value: 'round ears', text: 'Round Ears' }, { value: 'pointed ears', text: 'Pointed Ears' }, { value: 'folded ears', text: 'Folded Ears' }],
+                    framings: [{ value: 'full body', text: 'Full Body' }, { value: 'bust-up', text: 'Bust-up' }, { value: 'headshot', text: 'Headshot' }, { value: 'half-body', text: 'Half-body' }],
+                    facialExpressions: [{ value: 'smiling', text: 'Smiling' }, { value: 'neutral', text: 'Neutral' }, { value: 'serious', text: 'Serious' }, { value: 'surprised', text: 'Surprised' }, { value: 'angry', text: 'Angry' }, { value: 'sad', text: 'Sad' }],
+                    gazeDirections: [{ value: 'looking straight at the camera', text: 'Looking straight at the camera' }, { value: 'looking to the left', text: 'Looking to the left' }, { value: 'looking to the right', text: 'Looking to the right' }, { value: 'looking up', text: 'Looking up' }, { value: 'looking down', text: 'Looking down' }]
+                }
+            };
+
+            const updateUI = (lang) => {
+                document.querySelectorAll('[data-lang-key]').forEach(element => {
+                    const key = element.getAttribute('data-lang-key');
+                    if (translations[lang][key]) {
+                        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                            element.placeholder = translations[lang][key];
+                        } else {
+                            element.textContent = translations[lang][key];
+                        }
                     }
-
-                    // Primeiro, exclui os subdocumentos (comentários)
-                    const commentsRef = collection(db, `artifacts/${appId}/public/data/stories/${pendingDeleteStoryId}/comments`);
-                    const commentsSnap = await getDocs(commentsRef);
-                    const deletePromises = commentsSnap.docs.map(commentDoc => deleteDoc(commentDoc.ref));
-                    await Promise.all(deletePromises);
-
-                    // Depois, exclui o documento principal
-                    await deleteDoc(storyRef);
-                    closeReader();
-                    showMessage('História excluída com sucesso!', 'success');
-                } catch (error) {
-                    console.error("Erro ao excluir história:", error);
-                    showMessage("Ocorreu um erro ao excluir a história.", 'error');
-                }
-            });
-        }
-        
-        /**
-         * Exibe o modal de confirmação.
-         * @param {string} message A mensagem a ser exibida.
-         * @param {function} onConfirm O callback a ser executado ao confirmar.
-         */
-        function showConfirmModal(message, onConfirm) {
-            confirmMessage.textContent = message;
-            confirmOkBtn.onclick = onConfirm;
-            confirmModal.classList.remove('hidden');
-            confirmModal.querySelector('div').classList.add('modal-enter-active');
-        }
-
-        /**
-         * Fecha o modal de confirmação.
-         */
-        function closeConfirmModal() {
-            confirmModal.querySelector('div').classList.remove('modal-enter-active');
-            confirmModal.classList.add('hidden');
-        }
-
-        /**
-         * Callback para o botão de confirmação do modal.
-         */
-        function handleConfirmOk() {
-            const onConfirmFunction = confirmOkBtn.onclick;
-            closeConfirmModal();
-            onConfirmFunction();
-        }
-
-        /**
-         * Exibe uma mensagem na caixa de mensagem personalizada.
-         * @param {string} text O texto da mensagem.
-         * @param {string} type O tipo da mensagem ('success', 'error', 'warning', 'info').
-         */
-        function showMessage(text, type) {
-            messageText.textContent = text;
-            messageBox.className = 'fixed w-full max-w-sm p-4 rounded-lg shadow-lg hidden';
-            
-            switch (type) {
-                case 'success':
-                    messageBox.classList.add('bg-green-600', 'text-white');
-                    break;
-                case 'error':
-                    messageBox.classList.add('bg-red-600', 'text-white');
-                    break;
-                case 'warning':
-                    messageBox.classList.add('bg-yellow-500', 'text-black');
-                    break;
-                case 'info':
-                    messageBox.classList.add('bg-blue-600', 'text-white');
-                    break;
-                default:
-                    messageBox.classList.add('bg-gray-700', 'text-white');
-            }
-
-            messageBox.classList.remove('hidden');
-            setTimeout(() => {
-                messageBox.classList.add('hidden');
-            }, 5000);
-        }
-
-        /**
-         * Copia o ID do usuário para a área de transferência.
-         */
-        function copyUserId() {
-            if (currentUser && currentUser.uid) {
-                navigator.clipboard.writeText(currentUser.uid).then(() => {
-                    showMessage('ID copiado para a área de transferência!', 'success');
-                }).catch(err => {
-                    console.error('Erro ao copiar ID: ', err);
-                    showMessage('Erro ao copiar ID. Tente novamente.', 'error');
                 });
-            }
-        }
 
-        // Inicia o aplicativo
-        initializeAppAndListeners();
+                const populateSelect = (selectElement, options, selectedValue) => {
+                    selectElement.innerHTML = '';
+                    options.forEach(option => {
+                        const opt = document.createElement('option');
+                        opt.value = option.value;
+                        opt.textContent = option.text;
+                        if (option.value === selectedValue) {
+                            opt.selected = true;
+                        }
+                        selectElement.appendChild(opt);
+                    });
+                };
+
+                const animals = translations[lang].animals;
+                const genders = translations[lang].genders;
+                const artStyles = translations[lang].artStyles;
+                const poses = translations[lang].poses;
+                const backgrounds = translations[lang].backgrounds;
+                const clothing = translations[lang].clothing;
+                const hairStyles = translations[lang].hairStyles;
+                const tailStyles = translations[lang].tailStyles;
+                const earStyles = translations[lang].earStyles;
+                const framings = translations[lang].framings;
+                const facialExpressions = translations[lang].facialExpressions;
+                const gazeDirections = translations[lang].gazeDirections;
+
+                populateSelect(animal1Select, animals, animal1Select.value);
+                populateSelect(animal2Select, [{ value: 'none', text: translations[lang].animal2Label.replace(' (Opcional)', '').replace(' (Optional)', '') }, ...animals], animal2Select.value);
+                populateSelect(genderSelect, genders, genderSelect.value);
+                populateSelect(artStyleSelect, artStyles, artStyleSelect.value);
+                populateSelect(poseSelect, poses, poseSelect.value);
+                populateSelect(backgroundSelect, backgrounds, backgroundSelect.value);
+                populateSelect(clothingSelect, clothing, clothingSelect.value);
+                populateSelect(hairStyleSelect, hairStyles, hairStyleSelect.value);
+                populateSelect(tailStyleSelect, tailStyles, tailStyleSelect.value);
+                populateSelect(earStyleSelect, earStyles, earStyleSelect.value);
+                populateSelect(framingSelect, framings, framingSelect.value);
+                populateSelect(facialExpressionSelect, facialExpressions, facialExpressionSelect.value);
+                populateSelect(gazeDirectionSelect, gazeDirections, gazeDirectionSelect.value);
+            };
+
+            updateUI(languageSelect.value);
+
+            languageSelect.addEventListener('change', (e) => {
+                const lang = e.target.value;
+                updateUI(lang);
+            });
+
+            const apiKey = "";
+            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=" + apiKey;
+
+            const getProportionDescription = (value) => {
+                if (value < 20) return 'very small';
+                if (value < 40) return 'small';
+                if (value < 60) return 'proportionate';
+                if (value < 80) return 'large';
+                return 'very large';
+            };
+
+            const generateImage = async (isRegenerate = false) => {
+                generateButton.disabled = true;
+                regenerateButton.disabled = true;
+                editButton.disabled = true;
+                downloadButton.disabled = true;
+                loadingOverlay.classList.add('visible');
+                loadingText.textContent = translations[languageSelect.value].loadingText;
+                resultImage.classList.remove('visible');
+                actionButtonsDiv.classList.add('hidden');
+
+                let prompt = '';
+                if (!isRegenerate) {
+                    const animal1 = animal1Select.value;
+                    const animal2 = animal2Select.value === 'none' ? '' : `and a ${animal2Select.value}`;
+                    const gender = genderSelect.value;
+                    const artStyle = artStyleSelect.value;
+                    const pose = poseSelect.value;
+                    const background = backgroundSelect.value;
+                    const primaryColor = primaryColorInput.value.trim();
+                    const clothingStyle = clothingSelect.value;
+                    const hairStyle = hairStyleSelect.value;
+                    const tailStyle = tailStyleSelect.value;
+                    const earStyle = earStyleSelect.value;
+                    const traits = traitsInput.value.trim();
+                    const framing = framingSelect.value;
+
+                    const headSize = getProportionDescription(parseInt(headSizeInput.value));
+                    const chestSize = getProportionDescription(parseInt(chestSizeInput.value));
+                    const legsSize = getProportionDescription(parseInt(legsSizeInput.value));
+                    const bustSize = getProportionDescription(parseInt(bustSizeInput.value));
+                    
+                    if (clothingStyle === 'no clothes') {
+                        prompt = `A detailed, SFW, non-sexual, feral furry fursona, a ${framing} shot of an anthropomorphic hybrid of a ${animal1} ${animal2}. The character has a ${gender} body type, with naturalistic ${primaryColor} fur patterns and markings. It has a ${headSize} head, ${chestSize} chest, ${legsSize} legs, and ${bustSize} bust. It has ${hairStyle}, a ${tailStyle} and ${earStyle}. The character is not wearing any clothes, with fur covering body parts in a naturalistic way. The art style is a vivid ${artStyle}. It is posed ${pose} against a ${background}. Other traits: ${traits}. The character's fur is ${primaryColor}. Safe for work.`;
+                    } else {
+                        const clothingPrompt = `wearing ${clothingStyle}`;
+                        prompt = `A detailed, SFW furry fursona, a ${framing} shot of an anthropomorphic hybrid of a ${animal1} ${animal2}. The character has a ${gender} body type, with ${primaryColor} fur and markings. It has a ${headSize} head, ${chestSize} chest, ${legsSize} legs, and ${bustSize} bust. It has ${hairStyle}, a ${tailStyle} and ${earStyle}. It is ${clothingPrompt}. The art style is a vivid ${artStyle}. It is posed ${pose} against a ${background}. Other traits: ${traits}. The character's fur is ${primaryColor}. Safe for work.`;
+                    }
+                    lastPrompt = prompt;
+                } else {
+                    const facialExpression = facialExpressionSelect.value;
+                    const gazeDirection = gazeDirectionSelect.value;
+                    prompt = lastPrompt + `, with a ${facialExpression} expression and ${gazeDirection}.`;
+                }
+
+                console.log("Prompt a ser enviado:", prompt);
+
+                let retries = 0;
+                const maxRetries = 3;
+                let backoffDelay = 1000;
+
+                while (retries < maxRetries) {
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                instances: { prompt: prompt },
+                                parameters: { "sampleCount": 1 }
+                            })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const result = await response.json();
+                        const base64Data = result?.predictions?.[0]?.bytesBase64Encoded;
+                        
+                        if (base64Data) {
+                            imageDataUrl = `data:image/png;base64,${base64Data}`;
+                            resultImage.src = imageDataUrl;
+                            resultImage.onload = () => {
+                                loadingOverlay.classList.remove('visible');
+                                resultImage.classList.add('visible');
+                                generateButton.disabled = false;
+                                regenerateButton.disabled = false;
+                                editButton.disabled = false;
+                                downloadButton.disabled = false;
+                                actionButtonsDiv.classList.remove('hidden');
+                            };
+                            return;
+                        } else {
+                            throw new Error('No image data received from API.');
+                        }
+                    } catch (error) {
+                        console.error("Erro ao gerar a imagem:", error);
+                        retries++;
+                        if (retries < maxRetries) {
+                            loadingText.textContent = translations[languageSelect.value].errorText;
+                            await new Promise(res => setTimeout(res, backoffDelay));
+                            backoffDelay *= 2;
+                        } else {
+                            loadingOverlay.classList.remove('visible');
+                            resultImage.src = "https://placehold.co/400x400/d946ef/FFFFFF?text=Erro+ao+Gerar+Imagem";
+                            resultImage.classList.add('visible');
+                            generateButton.disabled = false;
+                            regenerateButton.disabled = false;
+                            editButton.disabled = false;
+                            downloadButton.disabled = false;
+                            actionButtonsDiv.classList.remove('hidden');
+                            loadingText.textContent = translations[languageSelect.value].finalErrorText;
+                            break;
+                        }
+                    }
+                }
+            };
+
+            const showEditPanel = () => {
+                mainPanel.classList.add('hidden');
+                editPanel.classList.remove('hidden');
+            };
+
+            const showMainPanel = () => {
+                editPanel.classList.add('hidden');
+                mainPanel.classList.remove('hidden');
+            };
+            
+            const downloadImage = () => {
+                if (imageDataUrl) {
+                    const link = document.createElement('a');
+                    link.href = imageDataUrl;
+                    link.download = 'fursona_gerado.png';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            };
+            
+            // Adiciona partículas de patinhas de forma aleatória na tela
+            function createPawParticle() {
+                const particle = document.createElement('div');
+                particle.classList.add('paw-particle');
+                particle.textContent = '🐾';
+                
+                const size = Math.random() * 20 + 10;
+                const duration = Math.random() * 4 + 4;
+                const left = Math.random() * 100;
+
+                particle.style.fontSize = `${size}px`;
+                particle.style.left = `${left}%`;
+                particle.style.animationDuration = `${duration}s`;
+                
+                document.body.appendChild(particle);
+
+                setTimeout(() => {
+                    particle.remove();
+                }, duration * 1000);
+            }
+
+            setInterval(createPawParticle, 500);
+
+            generateButton.addEventListener('click', () => generateImage(false));
+            regenerateButton.addEventListener('click', () => generateImage(true));
+            editButton.addEventListener('click', showEditPanel);
+            backButton.addEventListener('click', showMainPanel);
+            downloadButton.addEventListener('click', downloadImage);
+        });
     </script>
 </body>
 </html>
